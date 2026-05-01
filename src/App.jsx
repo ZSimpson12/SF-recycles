@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 
-const STORAGE_KEY = "sf-recycles-leaderboard";
-
 const SF_ZIP_CODES = {
   "94102": "Civic Center", "94103": "SoMa", "94104": "Financial District",
   "94105": "South Beach", "94107": "Potrero Hill", "94108": "Chinatown",
@@ -16,59 +14,30 @@ const SF_ZIP_CODES = {
   "94158": "Mission Bay"
 };
 
-function loadLeaderboard() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error("Unable to load leaderboard", error);
-    return [];
-  }
-}
-
 function App() {
   const [userName, setUserName] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [weight, setWeight] = useState("");
   const [file, setFile] = useState(null);
-  const [entries, setEntries] = useState([]);
   const [error, setError] = useState("");
   const [uploadResult, setUploadResult] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('global');
 
+  async function fetchLeaderboard() {
+    const response = await fetch("http://localhost:4000/api/leaderboard");
+    const data = await response.json();
+    setLeaderboard(data.users || []);
+  }
+
   useEffect(() => {
-    setEntries(loadLeaderboard());
+    fetchLeaderboard();
   }, []);
 
   function handleUserNameChange(event) { setUserName(event.target.value); setError(''); }
   function handleFileChange(event) { setFile(event.target.files?.[0] ?? null); setError(''); }
   function handleZipChange(event) { setZipCode(event.target.value); setError(''); }
-
-  async function handleReceiptUpload({ user, zipCode, weight, file }) {
-    const formData = new FormData();
-    formData.append("user", user);
-    formData.append("neighborhood", zipCode);
-    formData.append("weight", weight);
-    formData.append("receipt", file);
-
-    const response = await fetch("http://localhost:4000/api/receipts", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error || "Upload failed");
-    }
-    return response.json();
-  }
-
-  async function fetchLeaderboard() {
-    const response = await fetch("http://localhost:4000/api/leaderboard");
-    return response.json();
-  }
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -81,10 +50,25 @@ function App() {
     }
     setIsLoading(true);
     try {
-      const data = await handleReceiptUpload({ user: userName, zipCode, weight, file });
+      const formData = new FormData();
+      formData.append("user", userName);
+      formData.append("neighborhood", zipCode);
+      formData.append("weight", weight);
+      formData.append("receipt", file);
+
+      const response = await fetch("http://localhost:4000/api/receipts", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Upload failed");
+      }
+
+      const data = await response.json();
       setUploadResult(data);
-      const lb = await fetchLeaderboard();
-      setLeaderboard(lb);
+      await fetchLeaderboard();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -93,18 +77,17 @@ function App() {
   }
 
   const resolvedNeighborhood = SF_ZIP_CODES[zipCode.trim()] || '';
-
   const normalizedUserName = userName.trim().toLowerCase();
+
   const userEntries = normalizedUserName
-    ? entries.filter((entry) => entry.userName?.toLowerCase() === normalizedUserName)
+    ? leaderboard.filter(e => e.user?.toLowerCase() === normalizedUserName)
     : [];
 
-  const totalPoints = userEntries.reduce((sum, entry) => sum + entry.points, 0);
-  const totalWeight = userEntries.reduce((sum, entry) => sum + (entry.weight || 0), 0);
-  const sortedEntries = [...entries].sort((a, b) => b.points - a.points);
-
+  const totalPoints = userEntries.reduce((sum, e) => sum + e.points, 0);
+  const totalWeight = userEntries.reduce((sum, e) => sum + (e.weight || 0), 0);
+  const sortedEntries = [...leaderboard].sort((a, b) => b.points - a.points);
   const localEntries = resolvedNeighborhood
-    ? sortedEntries.filter(e => e.neighborhood?.toLowerCase() === resolvedNeighborhood.toLowerCase())
+    ? leaderboard.filter(e => e.neighborhood?.toLowerCase() === resolvedNeighborhood.toLowerCase())
     : [];
 
   return (
@@ -184,7 +167,7 @@ function App() {
             </div>
             <div className="stat-card">
               <p className="stat-label">Submissions</p>
-              <h3>{entries.length}</h3>
+              <h3>{leaderboard.length}</h3>
             </div>
           </div>
 
@@ -197,9 +180,9 @@ function App() {
             {activeTab === 'global' ? (
               sortedEntries.length > 0 ? (
                 sortedEntries.map((entry, index) => (
-                  <div key={entry.id} className="leaderboard-row">
+                  <div key={index} className="leaderboard-row">
                     <span className="rank">#{index + 1}</span>
-                    <span className="entry-user">{entry.userName}</span>
+                    <span className="entry-user">{entry.user}</span>
                     <span className="entry-points">{entry.points} pts</span>
                   </div>
                 ))
@@ -209,9 +192,9 @@ function App() {
             ) : (
               localEntries.length > 0 ? (
                 localEntries.map((entry, index) => (
-                  <div key={entry.id} className="leaderboard-row">
+                  <div key={index} className="leaderboard-row">
                     <span className="rank">#{index + 1}</span>
-                    <span className="entry-user">{entry.userName}</span>
+                    <span className="entry-user">{entry.user}</span>
                     <span className="entry-points">{entry.points} pts</span>
                   </div>
                 ))

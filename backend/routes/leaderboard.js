@@ -3,15 +3,29 @@ const router = express.Router();
 
 module.exports = (receipts) => {
   router.get('/', (req, res) => {
-    const leaderboard = {};
+    // per-user aggregation
+    const userMap = {};
     receipts.forEach(r => {
-      if (!leaderboard[r.neighborhood]) leaderboard[r.neighborhood] = 0;
-      leaderboard[r.neighborhood] += r.points;
+      if (!userMap[r.user]) {
+        userMap[r.user] = { user: r.user, neighborhood: r.neighborhood, points: 0, weight: 0 };
+      }
+      userMap[r.user].points += r.points;
+      userMap[r.user].weight += r.weight || 0;
     });
-    const sorted = Object.entries(leaderboard)
-      .map(([neighborhood, total_points]) => ({ neighborhood, total_points }))
-      .sort((a, b) => b.total_points - a.total_points);
-    res.json(sorted);
+    const users = Object.values(userMap).sort((a, b) => b.points - a.points);
+
+    // per-neighborhood aggregation
+    const neighborhoodMap = {};
+    receipts.forEach(r => {
+      if (!neighborhoodMap[r.neighborhood]) {
+        neighborhoodMap[r.neighborhood] = { neighborhood: r.neighborhood, points: 0, weight: 0 };
+      }
+      neighborhoodMap[r.neighborhood].points += r.points;
+      neighborhoodMap[r.neighborhood].weight += r.weight || 0;
+    });
+    const neighborhoods = Object.values(neighborhoodMap).sort((a, b) => b.points - a.points);
+
+    res.json({ users, neighborhoods });
   });
 
   return router;

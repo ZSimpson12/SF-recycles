@@ -57,7 +57,11 @@ function isValidSFNeighborhood(input) {
   if (SF_ZIP_CODES[trimmed]) return true;
   return SF_NEIGHBORHOODS.some(n => n.toLowerCase() === trimmed.toLowerCase());
 }
-
+function resolveNeighborhood(input) {
+  const trimmed = input.trim();
+  if (SF_ZIP_CODES[trimmed]) return SF_ZIP_CODES[trimmed];
+  return trimmed;
+}
 
 const receipts = [];
 
