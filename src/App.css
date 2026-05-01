@@ -324,6 +324,7 @@
     text-align: left;
     font-size: 0.95rem;
   }
+}
 
   .tab-bar {
   display: flex;
@@ -332,8 +333,6 @@
 }
 
 .tab-btn {
-  appearance: none;
-  -webkit-appearance: none;        /* ← these two strip the browser default */
   flex: 1;
   padding: 14px 22px;
   border: 2px solid var(--accent);
@@ -359,5 +358,4 @@
   transform: translateY(-2px);
   box-shadow: 0 16px 30px -14px rgba(0, 101, 209, 0.35);
   background: rgba(0, 101, 209, 0.15);
-}
 }
