@@ -1,5 +1,5 @@
 import { testGemini } from "./gemini";
-import { useEffect, useState } from 'react'
+import { act, useEffect, useState } from 'react'
 import './App.css'
 
 const STORAGE_KEY = 'sf-recycles-leaderboard'
@@ -46,6 +46,8 @@ function App() {
   const [entries, setEntries] = useState([])
   const [receiptResult, setReceiptResult] = useState(null)
   const [error, setError] = useState('')
+  const [neighborhood, setNeighborhood] = useState('')
+  const [activeTab, setActiveTab] = useState('global')
 
   useEffect(() => {
     setEntries(loadLeaderboard())
@@ -66,6 +68,11 @@ function App() {
 
   function handleFileChange(event) {
     setFile(event.target.files?.[0] ?? null)
+    setError('')
+  }
+
+  function handleNeighborhoodChange(event) {
+    setNeighborhood(event.target.value)
     setError('')
   }
 
@@ -91,6 +98,7 @@ function App() {
     const nextEntry = {
       id: `${Date.now()}-${file.name}`,
       userName: userName.trim(),
+      neighborhood: neighborhood.trim(),
       receiptName: file.name,
       bottleCount,
       points,
@@ -159,6 +167,15 @@ function App() {
             </label>
 
             <label>
+              Neighborhood
+              <input
+                type="text"
+                placeholder="Which neighborhood are you in?"
+                onChange={handleNeighborhoodChange}
+              />
+            </label>
+
+            <label>
               Receipt image
               <input type="file" accept="image/*" onChange={handleFileChange} />
             </label>
@@ -208,7 +225,7 @@ function App() {
             <div className="stat-card">
               <p className="stat-label">Your total points</p>
               <h3>{totalPoints}</h3>
-              <p>{totalBottles} bottles donated</p>
+              <p>{totalBottles} lb donated</p>
             </div>
             <div className="stat-card">
               <p className="stat-label">Submissions</p>
@@ -217,18 +234,58 @@ function App() {
             </div>
           </div>
 
+          <div className="tab-bar">
+            <button
+              className={activeTab === 'global' ? 'tab-btn tab-btn--active' : 'tab-btn'}
+              onClick={() => setActiveTab('global')}
+            >
+              Global
+            </button>
+            <button
+              className={activeTab === 'local' ? 'tab-btn tab-btn--active' : 'tab-btn'}
+              onClick={() => setActiveTab('local')}
+            >
+              Local
+            </button>
+          </div>
+
+
           <div className="leaderboard-list">
-            {sortedEntries.length > 0 ? (
-              sortedEntries.map((entry, index) => (
-                <div key={entry.id} className="leaderboard-row">
-                  <span className="rank">#{index + 1}</span>
-                  <span className="entry-user">{entry.userName}</span>
-                  <span className="entry-bottles">{entry.bottleCount} bottles</span>
-                  <span className="entry-points">{entry.points} pts</span>
-                </div>
-              ))
+            {activeTab === 'global' ? (
+              sortedEntries.length > 0 ? (
+                sortedEntries.map((entry, index) => (
+                  <div key={entry.id} className="leaderboard-row">
+                    <span className="rank">#{index + 1}</span>
+                    <span className="entry-user">{entry.userName}</span>
+                    <span className="entry-bottles">{entry.bottleCount} bottles</span>
+                    <span className="entry-points">{entry.points} pts</span>
+                  </div>
+                ))
+              ) : (
+                <p className="empty-state">No receipts submitted yet.</p>
+              )
             ) : (
-              <p className="empty-state">No receipts submitted yet. Upload one to start the leaderboard.</p>
+              (() => {
+                const localEntries = sortedEntries.filter(
+                  e => e.neighborhood?.toLowerCase() === neighborhood.trim().toLowerCase()
+                )
+                return localEntries.length > 0 ? (
+                  localEntries.map((entry, index) => (
+                    <div key={entry.id} className="leaderboard-row">
+                      <span className="rank">#{index + 1}</span>
+                      <span className="entry-user">{entry.userName}</span>
+                      <span className="entry-bottles">{entry.bottleCount} bottles</span>
+                      <span className="entry-points">{entry.points} pts</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-state">
+                    {neighborhood.trim()
+                      ? `No entries for ${neighborhood.trim()} yet.`
+                      : 'Enter your neighborhood above to see local rankings.'}
+                  </p>
+                )
+              })()
             )}
           </div>
         </section>
