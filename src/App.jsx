@@ -90,6 +90,14 @@ function App() {
     ? leaderboard.filter(e => e.neighborhood?.toLowerCase() === resolvedNeighborhood.toLowerCase())
     : [];
 
+  const neighborhoodTotals = Object.entries(
+    leaderboard.reduce((acc, entry) => {
+      const hood = entry.neighborhood || 'Unknown';
+      acc[hood] = (acc[hood] || 0) + entry.points;
+      return acc;
+    }, {})
+  ).sort((a, b) => b[1] - a[1]);
+
   return (
     <div className="app-shell">
       <header className="site-banner">
@@ -207,6 +215,35 @@ function App() {
           </div>
         </section>
       </div>
+
+      <section className="panel neighborhood-panel">
+        <div className="panel-header">
+          <h2>Neighborhood Battle</h2>
+          <p>Total points earned by every SF neighborhood.</p>
+        </div>
+
+        <div className="neighborhood-list">
+          {neighborhoodTotals.length > 0 ? (
+            neighborhoodTotals.map(([hood, pts], index) => {
+              const max = neighborhoodTotals[0][1];
+              const pct = Math.round((pts / max) * 100);
+              const isUser = hood.toLowerCase() === resolvedNeighborhood.toLowerCase();
+              return (
+                <div key={hood} className={`neighborhood-row${isUser ? ' neighborhood-row--you' : ''}`}>
+                  <span className="rank">#{index + 1}</span>
+                  <span className="neighborhood-name">{hood}</span>
+                  <div className="neighborhood-bar-wrap">
+                    <div className="neighborhood-bar" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="neighborhood-pts">{pts} pts</span>
+                </div>
+              );
+            })
+          ) : (
+            <p className="empty-state">No submissions yet. Be the first to represent your neighborhood!</p>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
