@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import "./App.css";
+import { testGemini } from "./gemini";
+import { act, useEffect, useState } from 'react'
+import './App.css'
 
 const STORAGE_KEY = "sf-recycles-leaderboard";
 
@@ -35,58 +36,67 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setEntries(loadLeaderboard());
-  }, []);
+    setEntries(loadLeaderboard())
+  }, [])
 
-  function handleUserNameChange(event) { setUserName(event.target.value); setError(""); }
-  function handleNeighborhoodChange(event) { setNeighborhood(event.target.value); setError(""); }
-  function handleFileChange(event) { setFile(event.target.files?.[0] ?? null); setError(""); }
-
-  async function handleReceiptUpload({ user, neighborhood, weight, file }) {
-    const formData = new FormData();
-    formData.append("user", user);
-    formData.append("neighborhood", neighborhood);
-    formData.append("weight", weight);
-    formData.append("receipt", file);
-
-    const response = await fetch("http://localhost:4000/api/receipts", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Upload failed");
-    }
-
-    return response.json();
-  }
-
-  async function fetchLeaderboard() {
-    const response = await fetch("http://localhost:4000/api/leaderboard");
-    return response.json();
-  }
-
-  async function onSubmit(e) {
-    e.preventDefault();
-    if (isLoading) return;
-    setError("");
-    setUploadResult(null);
-    if (!userName || !neighborhood || !weight || !file) {
-      setError("Please fill out all fields and select a receipt image.");
-      return;
-    }
-    setIsLoading(true);
+  function saveEntries(nextEntries) {
     try {
-      const data = await handleReceiptUpload({ user: userName, neighborhood, weight, file });
-      setUploadResult(data);
-      const lb = await fetchLeaderboard();
-      setLeaderboard(lb);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(nextEntries))
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
+      console.error('Unable to save leaderboard', err)
     }
+  }
+
+  function handleUserNameChange(event) {
+    setUserName(event.target.value)
+    setError('')
+  }
+
+  function handleFileChange(event) {
+    setFile(event.target.files?.[0] ?? null)
+    setError('')
+  }
+
+  function handleNeighborhoodChange(event) {
+    setNeighborhood(event.target.value)
+    setError('')
+  }
+
+  function handleUpload(event) {
+    event.preventDefault()
+    if (!userName.trim()) {
+      setError('Enter your name so your points appear on the leaderboard.')
+      return
+    }
+
+    if (!file) {
+      setError('Select a receipt image to process.')
+      return
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload a valid image file.')
+      return
+    }
+
+    const bottleCount = mockExtractBottleCount(file)
+    const points = calculatePoints(bottleCount)
+    const nextEntry = {
+      id: `${Date.now()}-${file.name}`,
+      userName: userName.trim(),
+      neighborhood: neighborhood.trim(),
+      receiptName: file.name,
+      bottleCount,
+      points,
+      date: new Date().toISOString(),
+    }
+
+    const nextEntries = [nextEntry, ...entries].sort((a, b) => b.points - a.points)
+    setEntries(nextEntries)
+    setReceiptResult(nextEntry)
+    setFile(null)
+    saveEntries(nextEntries)
+    event.currentTarget.reset()
   }
 
   const normalizedUserName = userName.trim().toLowerCase();
@@ -135,6 +145,16 @@ function App() {
               Total weight (lbs)
               <input type="number" step="0.1" placeholder="Enter total lbs from receipt" onChange={(e) => setWeight(e.target.value)} />
             </label>
+
+            <label>
+              Neighborhood
+              <input
+                type="text"
+                placeholder="Which neighborhood are you in?"
+                onChange={handleNeighborhoodChange}
+              />
+            </label>
+
             <label>
               Receipt image
               <input type="file" accept="image/*" onChange={handleFileChange} />
@@ -163,23 +183,66 @@ function App() {
             <div className="stat-card">
               <p className="stat-label">Your total points</p>
               <h3>{totalPoints}</h3>
+              <p>{totalBottles} lb donated</p>
             </div>
             <div className="stat-card">
               <p className="stat-label">Submissions</p>
               <h3>{entries.length}</h3>
             </div>
           </div>
+
+          <div className="tab-bar">
+            <button
+              className={activeTab === 'global' ? 'tab-btn tab-btn--active' : 'tab-btn'}
+              onClick={() => setActiveTab('global')}
+            >
+              Global
+            </button>
+            <button
+              className={activeTab === 'local' ? 'tab-btn tab-btn--active' : 'tab-btn'}
+              onClick={() => setActiveTab('local')}
+            >
+              Local
+            </button>
+          </div>
+
+
           <div className="leaderboard-list">
-            {sortedEntries.length > 0 ? (
-              sortedEntries.map((entry, index) => (
-                <div key={entry.id} className="leaderboard-row">
-                  <span className="rank">#{index + 1}</span>
-                  <span className="entry-user">{entry.userName}</span>
-                  <span className="entry-points">{entry.points} pts</span>
-                </div>
-              ))
+            {activeTab === 'global' ? (
+              sortedEntries.length > 0 ? (
+                sortedEntries.map((entry, index) => (
+                  <div key={entry.id} className="leaderboard-row">
+                    <span className="rank">#{index + 1}</span>
+                    <span className="entry-user">{entry.userName}</span>
+                    <span className="entry-bottles">{entry.bottleCount} bottles</span>
+                    <span className="entry-points">{entry.points} pts</span>
+                  </div>
+                ))
+              ) : (
+                <p className="empty-state">No receipts submitted yet.</p>
+              )
             ) : (
-              <p className="empty-state">No receipts submitted yet.</p>
+              (() => {
+                const localEntries = sortedEntries.filter(
+                  e => e.neighborhood?.toLowerCase() === neighborhood.trim().toLowerCase()
+                )
+                return localEntries.length > 0 ? (
+                  localEntries.map((entry, index) => (
+                    <div key={entry.id} className="leaderboard-row">
+                      <span className="rank">#{index + 1}</span>
+                      <span className="entry-user">{entry.userName}</span>
+                      <span className="entry-bottles">{entry.bottleCount} bottles</span>
+                      <span className="entry-points">{entry.points} pts</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-state">
+                    {neighborhood.trim()
+                      ? `No entries for ${neighborhood.trim()} yet.`
+                      : 'Enter your neighborhood above to see local rankings.'}
+                  </p>
+                )
+              })()
             )}
           </div>
         </section>
