@@ -132,6 +132,7 @@
 }
 
 .upload-form input[type='text'],
+.upload-form input[type='number'],
 .upload-form input[type='file'] {
   width: 100%;
   box-sizing: border-box;

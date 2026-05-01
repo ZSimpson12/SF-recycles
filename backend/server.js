@@ -3,13 +3,9 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const Tesseract = require('tesseract.js');
 
-// Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 
 const app = express();
 app.use(cors());
@@ -22,7 +18,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Neighborhoods and receipts
 const SF_NEIGHBORHOODS = [
   "Alamo Square", "Anza Vista", "Balboa Terrace", "Bayview", "Bernal Heights",
   "Castro", "Chinatown", "Civic Center", "Cole Valley", "Cow Hollow",
@@ -43,16 +38,30 @@ const SF_NEIGHBORHOODS = [
   "Visitacion Valley", "West Portal", "Western Addition", "Westwood Highlands",
   "Westwood Park"
 ];
-const receipts = [];
+
+const SF_ZIP_CODES = {
+  "94102": "Civic Center", "94103": "SoMa", "94104": "Financial District",
+  "94105": "South Beach", "94107": "Potrero Hill", "94108": "Chinatown",
+  "94109": "Nob Hill", "94110": "Mission District", "94111": "Financial District",
+  "94112": "Excelsior", "94114": "Castro", "94115": "Western Addition",
+  "94116": "Inner Sunset", "94117": "Haight-Ashbury", "94118": "Inner Richmond",
+  "94119": "West Portal", "94121": "Outer Richmond", "94122": "Outer Sunset",
+  "94123": "Marina", "94124": "Bayview", "94127": "West Portal",
+  "94129": "Presidio", "94130": "Treasure Island", "94131": "Glen Park",
+  "94132": "Ocean View", "94133": "North Beach", "94134": "Visitacion Valley",
+  "94158": "Mission Bay"
+};
 
 function isValidSFNeighborhood(input) {
-  return SF_NEIGHBORHOODS.some(
-    n => n.toLowerCase() === input.trim().toLowerCase()
-  );
+  const trimmed = input.trim();
+  if (SF_ZIP_CODES[trimmed]) return true;
+  return SF_NEIGHBORHOODS.some(n => n.toLowerCase() === trimmed.toLowerCase());
 }
 
-// Import and use routes
-const receiptsRoute = require('./routes/receipts')(upload, receipts, isValidSFNeighborhood);
+
+const receipts = [];
+
+const receiptsRoute = require('./routes/receipts')(upload, receipts, isValidSFNeighborhood, resolveNeighborhood);
 const leaderboardRoute = require('./routes/leaderboard')(receipts);
 
 app.use('/api/receipts', receiptsRoute);
