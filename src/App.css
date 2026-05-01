@@ -116,6 +116,12 @@
   font-weight: 700;
 }
 
+.upload-form {
+  margin-top: 18px;
+  display: grid;
+  gap: 16px;
+}
+
 .upload-form label {
   display: grid;
   gap: 8px;
@@ -138,7 +144,7 @@
 }
 
 .button {
-  width: fit-content;
+  width: 100%;
   border: 2px solid var(--accent);
   border-radius: 0px;
   padding: 14px 22px;
