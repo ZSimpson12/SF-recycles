@@ -1,4 +1,5 @@
-# HackathonDuo
+# SF-recycles
+## gator sprint '26
 Hackathon spring '26
 checks:
 <br>
