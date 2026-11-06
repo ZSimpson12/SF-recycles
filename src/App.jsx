@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import WaterFooter from './WaterFooter'
 
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:4000').replace(/\/+$/, '')
+
 const SF_ZIP_CODES = {
   "94102": "Civic Center", "94103": "SoMa", "94104": "Financial District",
   "94105": "South Beach", "94107": "Potrero Hill", "94108": "Chinatown",
@@ -28,7 +30,7 @@ function App() {
 
   async function requestLeaderboard() {
     try {
-      const response = await fetch("http://localhost:4000/api/leaderboard")
+      const response = await fetch(`${API_URL}/api/leaderboard`)
       if (!response.ok) return []
       const data = await response.json()
       return data.users || []
@@ -71,7 +73,7 @@ function App() {
       formData.append("neighborhood", zipCode)
       formData.append("weight", weight)
       formData.append("receipt", file)
-      const response = await fetch("http://localhost:4000/api/receipts", { method: "POST", body: formData })
+      const response = await fetch(`${API_URL}/api/receipts`, { method: "POST", body: formData })
       if (!response.ok) {
         const responseError = await response.json()
         throw new Error(responseError.error || "Upload failed")

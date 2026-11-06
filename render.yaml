@@ -1,0 +1,26 @@
+services:
+  - type: web
+    runtime: node
+    name: bottle-back-api
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/leaderboard
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.6
+
+  - type: web
+    runtime: static
+    name: bottle-back
+    # devDependencies are included because Vite is one of them.
+    buildCommand: npm install --include=dev && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.6
+      # Enter the API service's URL when Render prompts for this,
+      # e.g. https://bottle-back-api.onrender.com
+      - key: VITE_API_URL
+        sync: false

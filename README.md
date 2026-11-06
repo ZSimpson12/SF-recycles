@@ -24,3 +24,14 @@ cd to folder
 npm install
 <br>
 npm run dev
+
+# Deploying to Render
+
+[render.yaml](render.yaml) defines a static site for the frontend and a web service for the backend.
+
+1. Push your changes to GitHub.
+2. In the Render dashboard, choose **New > Blueprint** and select this repo.
+3. When prompted for `VITE_API_URL`, enter the backend's URL, e.g. `https://bottle-back-api.onrender.com`.
+4. Once deployed, check the backend's actual URL on its service page. If it differs, update `VITE_API_URL` on the static site and redeploy it.
+
+This setup is for demos. Receipts are stored in memory and uploads on local disk, so both are lost whenever the backend restarts or spins down.
