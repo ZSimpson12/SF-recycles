@@ -247,8 +247,7 @@
 }
 
 .card-heading h2,
-.section-heading h2,
-.water-copy h2 {
+.section-heading h2 {
   margin: 4px 0 0;
   font-size: clamp(1.75rem, 3vw, 2.5rem);
   line-height: 1;
@@ -474,130 +473,67 @@
 .progress-track span { display: block; height: 100%; border-radius: inherit; background: var(--teal); transition: width .6s cubic-bezier(.2,.8,.2,1); }
 .neighborhood-row.is-yours .progress-track span { background: var(--coral); }
 
-.water-playground {
+.water-footer {
   position: relative;
+  height: clamp(380px, 38vw, 500px);
   overflow: hidden;
-  min-height: 500px;
-  border-radius: 34px;
-  background: #dff3f0;
-  box-shadow: inset 0 0 0 1px rgba(20, 60, 70, .08);
 }
 
-.water-copy {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 20px;
-  padding: 42px 46px 0;
-}
-.water-copy p { margin-top: 8px; color: var(--ink-muted); font-size: .76rem; }
-
-.reset-button {
-  padding: 9px 13px;
-  border: 1px solid rgba(20, 60, 70, .28);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, .52);
-  color: var(--ink);
-  font: 800 .65rem/1 var(--body);
-  cursor: pointer;
-}
-
-.water-scene { position: absolute; inset: 132px 0 0; overflow: hidden; }
-.water-scene::after {
-  content: '';
+.water-canvas {
   position: absolute;
-  z-index: 1;
-  inset: 30% 0 0;
-  background: linear-gradient(180deg, #57c5d4, #1b91af);
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
-
-.wave {
-  position: absolute;
-  z-index: 2;
-  left: -10%;
-  width: 120%;
-  height: 100px;
-  border-radius: 50%;
-  animation: wave-drift 7s ease-in-out infinite alternate;
-}
-.wave-back { top: 19%; background: #8adbe0; opacity: .92; }
-.wave-front { top: 28%; left: -16%; background: #57c5d4; animation-delay: -3.5s; animation-duration: 9s; }
+.water-canvas-back { z-index: 1; }
+.water-canvas-front { z-index: 3; pointer-events: none; }
 
 .floating-bottle {
   position: absolute;
-  z-index: 4;
+  z-index: 2;
+  top: 0;
+  left: 0;
   width: 54px;
   height: 118px;
-  margin: -59px 0 0 -27px;
   padding: 0;
   border: 0;
   outline: 0;
   background: transparent;
   cursor: grab;
   touch-action: none;
+  will-change: transform;
 }
-.floating-bottle:focus-visible { filter: drop-shadow(0 0 0 #fff) drop-shadow(0 0 4px var(--ink)); }
-.floating-bottle.is-dragging { z-index: 9; cursor: grabbing; }
-.bottle-float {
-  display: block;
-  width: 100%;
-  animation: bottle-bob 3.4s ease-in-out var(--float-delay) infinite;
-  transform: rotate(var(--bottle-angle));
-  transform-origin: 50% 60%;
-  transition: filter .2s ease;
-}
-.floating-bottle:hover .bottle-float { filter: drop-shadow(0 8px 4px rgba(20, 60, 70, .18)); }
+.floating-bottle:focus-visible { filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 5px var(--ink)); }
+.floating-bottle.is-dragging { z-index: 4; cursor: grabbing; }
 .floating-bottle svg { display: block; width: 100%; overflow: visible; }
 .bottle-cap { fill: var(--ink); }
 .bottle-neck { fill: rgba(255,255,255,.62); stroke: var(--ink); stroke-width: 3; }
 .bottle-shine { fill: none; stroke: #fff; stroke-linecap: round; stroke-width: 4; opacity: .75; }
 .bottle-label { fill: var(--bottle-color); stroke: var(--ink); stroke-width: 3; }
 .bottle-mark { fill: var(--ink); }
-.floating-bottle.is-dragging .bottle-float { animation-play-state: paused; filter: drop-shadow(0 12px 6px rgba(20, 60, 70, .22)); }
 
-.bubble {
+.water-footer-copy {
   position: absolute;
-  z-index: 3;
-  width: 11px;
-  aspect-ratio: 1;
-  border: 2px solid rgba(255,255,255,.7);
-  border-radius: 50%;
-  animation: bubble-rise 5s linear infinite;
-}
-.bubble-1 { left: 17%; bottom: -20px; }
-.bubble-2 { left: 43%; bottom: -30px; width: 7px; animation-delay: -2s; }
-.bubble-3 { left: 67%; bottom: -10px; width: 15px; animation-delay: -3.4s; }
-.bubble-4 { left: 82%; bottom: -20px; animation-delay: -1s; }
-
-footer {
+  z-index: 5;
+  left: 50%;
+  bottom: 0;
+  width: min(1180px, calc(100% - 40px));
   display: flex;
   justify-content: space-between;
-  padding: 26px 4px 36px;
-  color: var(--ink-muted);
-  font-size: .65rem;
+  gap: 16px;
+  padding: 0 4px 22px;
+  color: #fff;
+  font-size: .68rem;
   font-weight: 800;
+  pointer-events: none;
+  translate: -50% 0;
 }
 
 @keyframes hero-float {
   0%, 100% { translate: 0 0; }
   50% { translate: 0 -12px; }
 }
-@keyframes wave-drift {
-  from { translate: -2% 0; transform: rotate(-1deg); }
-  to { translate: 2% 8px; transform: rotate(1deg); }
-}
-@keyframes bottle-bob {
-  0%, 100% { transform: translateY(0) rotate(var(--bottle-angle)); }
-  50% { transform: translateY(-11px) rotate(calc(var(--bottle-angle) + 4deg)); }
-}
-@keyframes bubble-rise {
-  from { translate: 0 0; opacity: 0; }
-  15% { opacity: 1; }
-  to { translate: 12px -260px; opacity: 0; }
-}
-
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; min-height: auto; }
   .hero-copy { padding-top: 34px; }
@@ -626,13 +562,9 @@ footer {
   .mini-stats strong { font-size: 1.05rem; }
   .section-heading { align-items: flex-start; flex-direction: column; }
   .neighborhood-section { padding: 72px 0 60px; }
+  .water-footer-copy { flex-direction: column; gap: 4px; }
   .neighborhood-row, .neighborhood-placeholder { grid-template-columns: 30px 1fr auto; gap: 10px; }
   .neighborhood-row .progress-track, .neighborhood-placeholder .progress-track { grid-column: 2 / 4; grid-row: 2; }
-  .water-playground { min-height: 530px; border-radius: 24px; }
-  .water-copy { align-items: flex-start; flex-direction: column; padding: 30px 25px 0; }
-  .water-scene { inset-block-start: 170px; }
-  .floating-bottle { scale: .86; }
-  footer { align-items: flex-start; flex-direction: column; gap: 4px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
+import WaterFooter from './WaterFooter'
 
 const SF_ZIP_CODES = {
   "94102": "Civic Center", "94103": "SoMa", "94104": "Financial District",
@@ -12,136 +13,6 @@ const SF_ZIP_CODES = {
   "94129": "Presidio", "94130": "Treasure Island", "94131": "Glen Park",
   "94132": "Ocean View", "94133": "North Beach", "94134": "Visitacion Valley",
   "94158": "Mission Bay"
-}
-
-const BOTTLES = [
-  { id: 1, left: 10, top: 30, rotate: -13, color: '#f6d267', delay: '0s' },
-  { id: 2, left: 30, top: 48, rotate: 9, color: '#ff8f70', delay: '-1.2s' },
-  { id: 3, left: 53, top: 24, rotate: -5, color: '#72d5aa', delay: '-2.4s' },
-  { id: 4, left: 73, top: 52, rotate: 14, color: '#e4a4ff', delay: '-.7s' },
-  { id: 5, left: 89, top: 28, rotate: -10, color: '#82cfff', delay: '-1.8s' },
-]
-
-function Bottle({ bottle, offset, isDragging, onPointerDown, onPointerMove, onPointerUp, onKeyDown }) {
-  return (
-    <button
-      type="button"
-      className={`floating-bottle${isDragging ? ' is-dragging' : ''}`}
-      aria-label={`Floating bottle ${bottle.id}. Drag it or use the arrow keys to move it.`}
-      style={{
-        left: `${bottle.left}%`,
-        top: `${bottle.top}%`,
-        translate: `${offset.x}px ${offset.y}px`,
-        '--bottle-angle': `${bottle.rotate}deg`,
-        '--bottle-color': bottle.color,
-        '--float-delay': bottle.delay,
-      }}
-      onPointerDown={(event) => onPointerDown(event, bottle.id)}
-      onPointerMove={(event) => onPointerMove(event, bottle.id)}
-      onPointerUp={(event) => onPointerUp(event, bottle.id)}
-      onPointerCancel={(event) => onPointerUp(event, bottle.id)}
-      onKeyDown={(event) => onKeyDown(event, bottle.id)}
-    >
-      <span className="bottle-float">
-        <svg viewBox="0 0 58 126" aria-hidden="true">
-          <path className="bottle-cap" d="M20 4h18v13H20z" />
-          <path className="bottle-neck" d="M22 16h14v15c0 5 10 8 12 17 3 15 5 47 3 60-2 10-9 14-22 14S9 118 7 108c-2-13 0-45 3-60 2-9 12-12 12-17V16Z" />
-          <path className="bottle-shine" d="M18 40c-5 14-6 49-3 65" />
-          <path className="bottle-label" d="M10 65h40v31H10z" />
-          <path className="bottle-mark" d="m25 73 10 7-10 8Z" />
-        </svg>
-      </span>
-    </button>
-  )
-}
-
-function WaterPlayground() {
-  const initialOffsets = Object.fromEntries(BOTTLES.map(({ id }) => [id, { x: 0, y: 0 }]))
-  const [offsets, setOffsets] = useState(initialOffsets)
-  const [dragging, setDragging] = useState(null)
-  const dragRef = useRef(null)
-
-  function onPointerDown(event, id) {
-    event.currentTarget.setPointerCapture(event.pointerId)
-    const origin = offsets[id]
-    dragRef.current = { id, startX: event.clientX, startY: event.clientY, origin }
-    setDragging(id)
-  }
-
-  function onPointerMove(event, id) {
-    const drag = dragRef.current
-    if (!drag || drag.id !== id) return
-    setOffsets((current) => ({
-      ...current,
-      [id]: {
-        x: drag.origin.x + event.clientX - drag.startX,
-        y: drag.origin.y + event.clientY - drag.startY,
-      },
-    }))
-  }
-
-  function onPointerUp(event, id) {
-    if (dragRef.current?.id !== id) return
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId)
-    }
-    dragRef.current = null
-    setDragging(null)
-  }
-
-  function onKeyDown(event, id) {
-    const directions = {
-      ArrowLeft: [-12, 0],
-      ArrowRight: [12, 0],
-      ArrowUp: [0, -12],
-      ArrowDown: [0, 12],
-    }
-    const movement = directions[event.key]
-    if (!movement) return
-    event.preventDefault()
-    setOffsets((current) => ({
-      ...current,
-      [id]: {
-        x: current[id].x + movement[0],
-        y: current[id].y + movement[1],
-      },
-    }))
-  }
-
-  return (
-    <section className="water-playground" aria-labelledby="water-title">
-      <div className="water-copy">
-        <div>
-          <span className="section-kicker">Bottle break</span>
-          <h2 id="water-title">Make a little splash</h2>
-          <p>Drag the bottles through the tide, or focus one and use your arrow keys.</p>
-        </div>
-        <button type="button" className="reset-button" onClick={() => setOffsets(initialOffsets)}>
-          Reset bottles
-        </button>
-      </div>
-      <div className="water-scene">
-        <div className="wave wave-back" />
-        <div className="wave wave-front" />
-        <span className="bubble bubble-1" />
-        <span className="bubble bubble-2" />
-        <span className="bubble bubble-3" />
-        <span className="bubble bubble-4" />
-        {BOTTLES.map((bottle) => (
-          <Bottle
-            key={bottle.id}
-            bottle={bottle}
-            offset={offsets[bottle.id]}
-            isDragging={dragging === bottle.id}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onKeyDown={onKeyDown}
-          />
-        ))}
-      </div>
-    </section>
-  )
 }
 
 function App() {
@@ -236,6 +107,7 @@ function App() {
   const visibleEntries = activeTab === 'global' ? sortedEntries : localEntries
 
   return (
+    <>
     <div className="site-wrap">
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Bottle Back home">
@@ -391,10 +263,10 @@ function App() {
           </div>
         </section>
 
-        <WaterPlayground />
       </main>
-      <footer><span>Bottle Back, San Francisco</span><span>Small returns. Big ripples.</span></footer>
     </div>
+    <WaterFooter />
+    </>
   )
 }
 
