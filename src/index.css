@@ -1,87 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap');
+
 :root {
-  --text: #10243d;
-  --text-h: #0b1a2b;
-  --bg: #e7f3ff;
-  --surface: #f4fbff;
-  --border: #aad4ff;
-  --code-bg: #f5fbff;
-  --accent: #0065d1;
-  --accent-2: #004a9c;
-  --accent-3: #5db6ff;
-  --accent-bg: rgba(0, 101, 209, 0.12);
-  --accent-border: rgba(0, 101, 209, 0.35);
-  --shadow: rgba(15, 49, 78, 0.12) 0 14px 30px -14px, rgba(255, 255, 255, 0.65) inset 0 0 0 1px;
-
-  --sans: 'Verdana', Geneva, sans-serif;
-  --heading: 'Lucida Console', Monaco, monospace;
-  --mono: 'Courier New', Courier, monospace;
-
-  font: 17px/1.6 var(--sans);
-  letter-spacing: 0.08em;
-  color-scheme: light;
-  color: var(--text);
-  background: var(--bg);
+  --cream: #f7f6ee;
+  --cream-dark: #ecece3;
+  --ink: #143c46;
+  --ink-soft: #355c64;
+  --ink-muted: #70868a;
+  --teal: #2c9196;
+  --teal-dark: #176c73;
+  --mint: #dff1e8;
+  --yellow: #f6d267;
+  --coral: #f27d63;
+  --coral-soft: #f9d9cf;
+  --line: rgba(20, 60, 70, .14);
+  --display: 'Manrope', sans-serif;
+  --body: 'DM Sans', sans-serif;
+  --mono: 'Courier New', monospace;
+  font-family: var(--body);
   font-synthesis: none;
+  color: var(--ink);
+  background: var(--cream);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
 }
+
+* { box-sizing: border-box; }
 
 body {
+  min-width: 320px;
+  min-height: 100vh;
   margin: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(218, 238, 255, 0.95));
-  background-image: radial-gradient(circle at 10% 10%, rgba(86, 156, 255, 0.12) 0, transparent 16%),
-    radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.4) 0, transparent 18%),
-    linear-gradient(transparent 0%, transparent 80%, rgba(255, 255, 255, 0.45) 80%);
+  background:
+    radial-gradient(circle at 88% 11%, rgba(246, 210, 103, .18), transparent 18rem),
+    radial-gradient(circle at 4% 38%, rgba(44, 145, 150, .08), transparent 22rem),
+    var(--cream);
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  padding: 0 0 40px;
-}
+button, input { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 700;
-  color: var(--text-h);
-}
+h1, h2, h3, p { margin-top: 0; }
+h1, h2, h3 { font-family: var(--display); color: var(--ink); }
 
-h1 {
-  font-size: 3rem;
-  letter-spacing: -0.02em;
-  margin: 20px auto;
-  max-width: 720px;
-}
-
-h2 {
-  font-size: 1.7rem;
-  line-height: 1.1;
-  margin: 0 0 8px;
-}
-
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
+::selection { background: var(--yellow); color: var(--ink); }
